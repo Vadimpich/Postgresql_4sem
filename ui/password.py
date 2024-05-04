@@ -58,6 +58,7 @@ class Ui_Dialog(object):
         font1.setFamilies([u"Microsoft YaHei UI Light"])
         font1.setPointSize(16)
         self.passInput.setFont(font1)
+        self.passInput.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.verticalLayout.addWidget(self.passInput)
 

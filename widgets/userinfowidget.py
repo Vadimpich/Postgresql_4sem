@@ -15,6 +15,8 @@ class UserInfoWidget(QtWidgets.QWidget):
         self.prev_index = prev_index
         self.db = Database()
         self.setup_controls()
+        if self.client is not None:
+            self.fill_data()
 
     def setup_controls(self):
         self.ui.buttonSave.clicked.connect(self.save_user)
@@ -48,5 +50,11 @@ class UserInfoWidget(QtWidgets.QWidget):
         self.parent().removeWidget(self)
         self.parent().widget(self.prev_index).update_client()
         del self
+
+    def fill_data(self):
+        self.ui.nameField.setText(self.client[1])
+        self.ui.surnameField.setText(self.client[2])
+        self.ui.phoneField.setText(self.client[3])
+        self.ui.addressField.setText(self.client[4])
 
 

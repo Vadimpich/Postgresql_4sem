@@ -78,14 +78,18 @@ class TableWidget(QtWidgets.QWidget):
             self.ui.buttonBack.hide()
 
     def update_table(self, search=None):
+        data = []
         try:
             if not search:
                 data = self.db.select(
                     f'select * from {self.model.view_name}'
                 )
             else:
-                field = self.model.view_fields[
+                field = (self.model.view_fields[
                     self.ui.searchBox.currentIndex() + 1]
+                         if self.model.view_fields
+                         else self.model.fields[
+                    self.ui.searchBox.currentIndex()].name)
                 data = self.db.select(
                     f'select * from {self.model.view_name} '
                     f'where CAST({field} AS VARCHAR) '
@@ -109,9 +113,9 @@ class TableWidget(QtWidgets.QWidget):
         fields = [field.name for field in self.model.fields]
         values = [
             f"'{
-                field.text()
-                if isinstance(field, QtWidgets.QLineEdit)
-                else field.currentText().split(' |')[0]
+            field.text()
+            if isinstance(field, QtWidgets.QLineEdit)
+            else field.currentText().split(' |')[0]
             }'"
             for field in self.fields
         ]
@@ -142,8 +146,8 @@ class TableWidget(QtWidgets.QWidget):
                         f'{', '.join(
                             [f"{self.model.fields[i].name} = "
                              f"'{
-                             self.fields[i].text() 
-                             if isinstance(self.fields[i], QtWidgets.QLineEdit) 
+                             self.fields[i].text()
+                             if isinstance(self.fields[i], QtWidgets.QLineEdit)
                              else self.fields[i].currentText().split(' |')[0]
                              }'"
                              for i in range(len(self.model.fields))]
@@ -191,7 +195,10 @@ class TableWidget(QtWidgets.QWidget):
                     )
                 else:
                     self.fields[i].setCurrentIndex(
-                        self.find_index(self.fields[i])
+                        self.find_index(
+                            self.fields[i],
+                            self.model.fields[i].reference,
+                        )
                     )
             self.ui.buttonEdit.setEnabled(True)
             self.ui.buttonDelete.setEnabled(True)
@@ -199,12 +206,19 @@ class TableWidget(QtWidgets.QWidget):
             self.ui.buttonEdit.setEnabled(False)
             self.ui.buttonDelete.setEnabled(False)
 
-    def find_index(self, field):
+    def find_index(self, field, ref):
         row = self.ui.dataTable.currentRow()
-        for i in range(field.count()):
-            if (field.itemText(i).split(' |')[0]
-                    == self.ui.dataTable.item(row, 0).text()):
-                return i
+        cell = self.ui.dataTable.item(row, 0).text()
+        item_id = self.db.select(
+            f'select {ref.table_name}_id '
+            f'from {self.model.table_name} '
+            f"where {self.model.table_name}_id = '{cell}'"
+        )
+        if item_id:
+            item_id = item_id[0][0]
+            for i in range(field.count()):
+                if field.itemText(i).split(' |')[0] == str(item_id):
+                    return i
         return -1
 
     def select_parent(self):

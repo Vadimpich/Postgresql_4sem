@@ -3,6 +3,7 @@ from PySide6 import QtWidgets
 from modules import db
 from ui.widget_user import Ui_clientWidget
 from widgets import userinfowidget, widgetnewrecord, recordswidget
+from dialogs import passworddialog
 
 
 class UserWidget(QtWidgets.QWidget):
@@ -59,4 +60,5 @@ class UserWidget(QtWidgets.QWidget):
             self.ui.buttonRecords.setEnabled(True)
 
     def change_password(self):
-        pass
+        dialog = passworddialog.PasswordDialog(self.user)
+        dialog.exec()

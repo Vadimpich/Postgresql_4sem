@@ -1,9 +1,10 @@
 import sys
 
-from PySide6 import QtWidgets
+from PyQt5.QtWinExtras import QtWin
+from PySide6 import QtWidgets, QtGui
 
 from ui.form import Ui_MainWindow
-from widgets import welcomewidget, adminwidget, tablewidget
+from widgets import welcomewidget
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -26,6 +27,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    myappid = 'vadim.services.0.1'
+    QtWin.setCurrentProcessExplicitAppUserModelID(myappid)
     window = MainWindow()
+    window.setWindowIcon(QtGui.QIcon('icon.ico'))
     window.show()
     sys.exit(app.exec())

@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 from PySide6.QtWidgets import QMessageBox
 
 from modules.db import Database
@@ -14,14 +14,15 @@ class NewRecordWidget(QtWidgets.QWidget):
         self.prev_index = prev_index
         self.db = Database()
         self.setup_controls()
-        self.setup_services()
+        self.setup_form()
 
     def setup_controls(self):
         self.ui.buttonSave.clicked.connect(self.save_record)
 
-    def setup_services(self):
+    def setup_form(self):
         for service in self.db.select('select name from service'):
             self.ui.serviceBox.addItem(service[0])
+        self.ui.dateEdit.setDateTime(QtCore.QDateTime.currentDateTime())
 
     def save_record(self):
         try:

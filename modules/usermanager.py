@@ -23,3 +23,10 @@ class UserManager:
             f'insert into users (username, password, role) '
             f"values ('{username}', '{password}', '{role}');",
         )
+
+    def change_password(self, username, new_password):
+        password = hashlib.sha256(new_password.encode()).hexdigest()
+        return self.db.insert(
+            f"update users set password = '{password}' "
+            f"where username = '{username}';"
+        )

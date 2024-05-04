@@ -1,12 +1,13 @@
+from pprint import pp
+
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtPrintSupport import QPrinter, QPrintDialog
 from PySide6.QtWidgets import (
-    QAbstractItemView, QTableWidgetItem, QFileDialog, QMessageBox
+    QAbstractItemView, QTableWidgetItem, QMessageBox
 )
 
 from modules.db import Database
-from ui.widget_records import Ui_recordsWidget
 from modules.models import Record
+from ui.widget_records import Ui_recordsWidget
 
 STATUSES = {
     'pending': 'Отправлена',
@@ -34,7 +35,7 @@ class RecordsWidget(QtWidgets.QWidget):
             ['Услуга', 'Сотрудник', 'Дата', 'Статус', 'Отзыв']
         )
         for i in range(5):
-            self.ui.dataTable.setColumnWidth(i, 900/5)
+            self.ui.dataTable.setColumnWidth(i, 900 / 5)
         self.ui.dataTable.setSelectionMode(
             QAbstractItemView.SelectionMode.SingleSelection
         )
@@ -57,18 +58,27 @@ class RecordsWidget(QtWidgets.QWidget):
         pass
 
     def update_table(self, search=None):
+        fields = [
+            'service_name',
+            'employee_full_name',
+            'date',
+            'status',
+            'review',
+        ]
+        data = []
         try:
             if not search:
                 data = self.db.select(
-                    f'select * from {self.model.view_name} '
+                    f'select {', '.join(fields)} '
+                    f'from {self.model.view_name} '
                     f"where client_full_name = "
                     f"'{f'{self.client[1]} {self.client[2]}'}'"
                 )
             else:
                 field = self.model.view_fields[
-                    self.ui.searchBox.currentIndex() + 1]
+                    self.ui.searchBox.currentIndex() + 2]
                 data = self.db.select(
-                    f'select * from {self.model.view_name} '
+                    f'select {', '.join(fields)} from {self.model.view_name} '
                     f"where client_full_name = "
                     f"'{f'{self.client[1]} {self.client[2]}'}' "
                     f'and CAST({field} AS VARCHAR) '
@@ -78,11 +88,16 @@ class RecordsWidget(QtWidgets.QWidget):
             QMessageBox.warning(
                 self, 'Ошибка', str(e), QMessageBox.StandardButton.Ok
             )
-        print(data)
         self.ui.dataTable.setRowCount(len(data))
         for row in range(len(data)):
             for col in range(len(data[row])):
-                item = QTableWidgetItem(f'{data[row][col]}')
+                text = (
+                    '-' if data[row][col] is None
+                    else STATUSES.get(data[row][col])
+                    if data[row][col] in STATUSES
+                    else data[row][col]
+                )
+                item = QTableWidgetItem(str(text))
                 item.setFlags(
                     QtCore.Qt.ItemFlag.ItemIsSelectable
                     | QtCore.Qt.ItemFlag.ItemIsEnabled
