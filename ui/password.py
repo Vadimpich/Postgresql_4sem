@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'register.ui'
+## Form generated from reading UI file 'password.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.7.0
 ##
@@ -24,11 +24,6 @@ class Ui_Dialog(object):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
         Dialog.resize(600, 400)
-        font = QFont()
-        font.setFamilies([u"Microsoft YaHei UI Light"])
-        Dialog.setFont(font)
-        icon = QIcon(QIcon.fromTheme(u"contact-new"))
-        Dialog.setWindowIcon(icon)
         self.horizontalLayout = QHBoxLayout(Dialog)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalSpacer = QSpacerItem(98, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
@@ -47,43 +42,44 @@ class Ui_Dialog(object):
         sizePolicy.setHeightForWidth(self.nameLabel.sizePolicy().hasHeightForWidth())
         self.nameLabel.setSizePolicy(sizePolicy)
         self.nameLabel.setMinimumSize(QSize(0, 80))
-        font1 = QFont()
-        font1.setFamilies([u"Microsoft YaHei UI Light"])
-        font1.setPointSize(22)
-        self.nameLabel.setFont(font1)
+        font = QFont()
+        font.setFamilies([u"Microsoft YaHei UI Light"])
+        font.setPointSize(22)
+        self.nameLabel.setFont(font)
         self.nameLabel.setTextFormat(Qt.TextFormat.PlainText)
         self.nameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.nameLabel)
 
-        self.loginInput = QLineEdit(self.widget)
-        self.loginInput.setObjectName(u"loginInput")
-        self.loginInput.setMinimumSize(QSize(350, 0))
-        font2 = QFont()
-        font2.setFamilies([u"Microsoft YaHei UI Light"])
-        font2.setPointSize(16)
-        self.loginInput.setFont(font2)
-
-        self.verticalLayout.addWidget(self.loginInput)
-
         self.passInput = QLineEdit(self.widget)
         self.passInput.setObjectName(u"passInput")
-        self.passInput.setFont(font2)
-        self.passInput.setInputMethodHints(Qt.InputMethodHint.ImhHiddenText|Qt.InputMethodHint.ImhNoAutoUppercase|Qt.InputMethodHint.ImhNoPredictiveText|Qt.InputMethodHint.ImhSensitiveData)
-        self.passInput.setEchoMode(QLineEdit.EchoMode.Password)
+        self.passInput.setMinimumSize(QSize(350, 0))
+        font1 = QFont()
+        font1.setFamilies([u"Microsoft YaHei UI Light"])
+        font1.setPointSize(16)
+        self.passInput.setFont(font1)
 
         self.verticalLayout.addWidget(self.passInput)
+
+        self.confirmInput = QLineEdit(self.widget)
+        self.confirmInput.setObjectName(u"confirmInput")
+        self.confirmInput.setFont(font1)
+        self.confirmInput.setInputMethodHints(Qt.InputMethodHint.ImhHiddenText|Qt.InputMethodHint.ImhNoAutoUppercase|Qt.InputMethodHint.ImhNoPredictiveText|Qt.InputMethodHint.ImhSensitiveData)
+        self.confirmInput.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.verticalLayout.addWidget(self.confirmInput)
 
         self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer_3)
 
-        self.regButton = QPushButton(self.widget)
-        self.regButton.setObjectName(u"regButton")
-        self.regButton.setFont(font2)
-        self.regButton.setAutoDefault(True)
+        self.editButton = QPushButton(self.widget)
+        self.editButton.setObjectName(u"editButton")
+        self.editButton.setFont(font1)
+        self.editButton.setAutoDefault(True)
+        self.editButton.setFlat(False)
 
-        self.verticalLayout.addWidget(self.regButton)
+        self.verticalLayout.addWidget(self.editButton)
 
         self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -103,12 +99,12 @@ class Ui_Dialog(object):
     # setupUi
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f", None))
-        self.nameLabel.setText(QCoreApplication.translate("Dialog", u"\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f", None))
-        self.loginInput.setInputMask("")
-        self.loginInput.setText("")
-        self.loginInput.setPlaceholderText(QCoreApplication.translate("Dialog", u"\u041b\u043e\u0433\u0438\u043d", None))
-        self.passInput.setPlaceholderText(QCoreApplication.translate("Dialog", u"\u041f\u0430\u0440\u043e\u043b\u044c", None))
-        self.regButton.setText(QCoreApplication.translate("Dialog", u"\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c\u0441\u044f", None))
+        Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
+        self.nameLabel.setText(QCoreApplication.translate("Dialog", u"\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u043f\u0430\u0440\u043e\u043b\u044c", None))
+        self.passInput.setInputMask("")
+        self.passInput.setText("")
+        self.passInput.setPlaceholderText(QCoreApplication.translate("Dialog", u"\u041d\u043e\u0432\u044b\u0439 \u043f\u0430\u0440\u043e\u043b\u044c", None))
+        self.confirmInput.setPlaceholderText(QCoreApplication.translate("Dialog", u"\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c", None))
+        self.editButton.setText(QCoreApplication.translate("Dialog", u"\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c", None))
     # retranslateUi
 

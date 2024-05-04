@@ -2,6 +2,8 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from ui.wigdet_welcome import Ui_welcomeWidget
 from dialogs import authdialog, registerdialog
+from widgets import adminwidget, userwidget
+from modules import db
 
 
 class WelcomeWidget(QtWidgets.QWidget):
@@ -17,11 +19,20 @@ class WelcomeWidget(QtWidgets.QWidget):
 
     def start_auth(self):
         auth = authdialog.AuthDialog()
-        auth.exec()
-        self.parent().setCurrentIndex(auth.next_tab)
+        self.next_page(auth)
 
     def start_register(self):
         register = registerdialog.RegisterDialog()
-        register.exec()
-        self.parent().setCurrentIndex(register.next_tab)
+        self.next_page(register)
 
+    def next_page(self, dialog):
+        result = dialog.exec()
+        if result == QtWidgets.QDialog.DialogCode.Accepted:
+            if dialog.next_tab == 'user':
+                user = dialog.user
+                self.parent().addWidget(
+                    userwidget.UserWidget(user, None)
+                )
+            else:
+                self.parent().addWidget(adminwidget.AdminWidget())
+            self.parent().setCurrentIndex(self.parent().count() - 1)

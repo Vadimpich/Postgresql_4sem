@@ -10,7 +10,7 @@ class Database:
         self.__conn = psycopg2.connect(
             dbname='services',
             user='postgres',
-            password='qwe',
+            password='Programm',
         )
         self.__conn.autocommit = True
         self.__cur = self.__conn.cursor()

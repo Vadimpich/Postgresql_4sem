@@ -81,7 +81,7 @@ class Ui_Dialog(object):
         self.loginButton = QPushButton(self.widget)
         self.loginButton.setObjectName(u"loginButton")
         self.loginButton.setFont(font2)
-        self.loginButton.setAutoDefault(False)
+        self.loginButton.setAutoDefault(True)
         self.loginButton.setFlat(False)
 
         self.verticalLayout.addWidget(self.loginButton)
