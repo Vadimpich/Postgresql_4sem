@@ -1,4 +1,90 @@
 --
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.2
+-- Dumped by pg_dump version 16.2
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: update_client_view(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_client_view() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW client_view;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_client_view() OWNER TO postgres;
+
+--
+-- Name: update_employee_view(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_employee_view() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW employee_view;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_employee_view() OWNER TO postgres;
+
+--
+-- Name: update_promotion_view(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_promotion_view() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW promotion_view;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_promotion_view() OWNER TO postgres;
+
+--
+-- Name: update_record_view(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_record_view() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW record_view;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_record_view() OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
 -- Name: client; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -8,7 +94,7 @@ CREATE TABLE public.client (
     last_name character varying(50) NOT NULL,
     phone_number character varying(20) NOT NULL,
     address text,
-    user_id integer
+    users_id integer
 );
 
 
@@ -62,7 +148,8 @@ CREATE MATERIALIZED VIEW public.client_view AS
     c.address,
     u.username AS user_username
    FROM (public.client c
-     LEFT JOIN public.users u ON ((c.user_id = u.users_id)));
+     LEFT JOIN public.users u ON ((c.users_id = u.users_id)))
+  WITH NO DATA;
 
 
 ALTER MATERIALIZED VIEW public.client_view OWNER TO postgres;
@@ -76,7 +163,7 @@ CREATE TABLE public.employee (
     first_name character varying(50) NOT NULL,
     last_name character varying(50) NOT NULL,
     salary numeric(10,2) NOT NULL,
-    user_id integer
+    users_id integer
 );
 
 
@@ -115,10 +202,48 @@ CREATE MATERIALIZED VIEW public.employee_view AS
     e.salary,
     u.username AS user_username
    FROM (public.employee e
-     LEFT JOIN public.users u ON ((e.user_id = u.users_id)));
+     LEFT JOIN public.users u ON ((e.users_id = u.users_id)))
+  WITH NO DATA;
 
 
 ALTER MATERIALIZED VIEW public.employee_view OWNER TO postgres;
+
+--
+-- Name: mail; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.mail (
+    mail_id integer NOT NULL,
+    text text,
+    receiver integer,
+    date timestamp without time zone DEFAULT now(),
+    seen boolean DEFAULT false
+);
+
+
+ALTER TABLE public.mail OWNER TO postgres;
+
+--
+-- Name: mail_mail_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.mail_mail_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.mail_mail_id_seq OWNER TO postgres;
+
+--
+-- Name: mail_mail_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.mail_mail_id_seq OWNED BY public.mail.mail_id;
+
 
 --
 -- Name: promotion; Type: TABLE; Schema: public; Owner: postgres
@@ -182,7 +307,8 @@ CREATE MATERIALIZED VIEW public.promotion_view AS
     p.start_date,
     p.end_date
    FROM (public.promotion p
-     LEFT JOIN public.service s ON ((p.service_id = s.service_id)));
+     LEFT JOIN public.service s ON ((p.service_id = s.service_id)))
+  WITH NO DATA;
 
 
 ALTER MATERIALIZED VIEW public.promotion_view OWNER TO postgres;
@@ -198,7 +324,8 @@ CREATE TABLE public.record (
     service_id integer,
     date date,
     review text,
-    status character varying(16)
+    status character varying(16) DEFAULT 'pending'::character varying,
+    CONSTRAINT check_status CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying, 'completed'::character varying])::text[])))
 );
 
 
@@ -241,7 +368,8 @@ CREATE MATERIALIZED VIEW public.record_view AS
    FROM (((public.record r
      LEFT JOIN public.client c ON ((r.client_id = c.client_id)))
      LEFT JOIN public.employee e ON ((r.employee_id = e.employee_id)))
-     LEFT JOIN public.service s ON ((r.service_id = s.service_id)));
+     LEFT JOIN public.service s ON ((r.service_id = s.service_id)))
+  WITH NO DATA;
 
 
 ALTER MATERIALIZED VIEW public.record_view OWNER TO postgres;
@@ -317,6 +445,13 @@ ALTER TABLE ONLY public.employee ALTER COLUMN employee_id SET DEFAULT nextval('p
 
 
 --
+-- Name: mail mail_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.mail ALTER COLUMN mail_id SET DEFAULT nextval('public.mail_mail_id_seq'::regclass);
+
+
+--
 -- Name: promotion promotion_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -348,136 +483,137 @@ ALTER TABLE ONLY public.users ALTER COLUMN users_id SET DEFAULT nextval('public.
 -- Data for Name: client; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (1, 'Emma', 'Smith', '123-456-7890', '123 Main St', 1);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (2, 'Liam', 'Johnson', '987-654-3210', '456 Elm St', 2);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (3, 'Olivia', 'Williams', '555-123-4567', '789 Oak St', 3);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (4, 'Noah', 'Brown', '111-222-3333', '101 Pine St', 4);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (5, 'Ava', 'Jones', '444-555-6666', '202 Maple St', 5);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (6, 'Mama', 'Papa', '123', '123', 1);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (7, 'Вадим', 'пичурин', '89898908909', 'Адрес', 6);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (8, 'qwe', 'qwe', 'qwe', 'qwe', 8);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (9, 'qwe', 'qwe', 'qwe', 'qwe', 10);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (10, 'qwe', 'qwe', 'qwe', 'qwe', 11);
-INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, user_id) VALUES (11, 'qweqew', 'qweeqwwe', 'qeqwqwe', 'qqweq', 12);
+INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, users_id) VALUES (14, 'Коля', 'Колян', '89523652265', 'папа', 14);
+INSERT INTO public.client (client_id, first_name, last_name, phone_number, address, users_id) VALUES (13, 'Вадим', 'Пичурин', '+79520000000', 'Москва', 6);
 
 
 --
 -- Data for Name: employee; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.employee (employee_id, first_name, last_name, salary, user_id) VALUES (11, 'James', 'Wilson', 3000.00, 1);
-INSERT INTO public.employee (employee_id, first_name, last_name, salary, user_id) VALUES (12, 'Sophia', 'Anderson', 2500.00, 2);
-INSERT INTO public.employee (employee_id, first_name, last_name, salary, user_id) VALUES (13, 'William', 'Taylor', 2800.00, 3);
-INSERT INTO public.employee (employee_id, first_name, last_name, salary, user_id) VALUES (14, 'Isabella', 'Thomas', 3200.00, 4);
-INSERT INTO public.employee (employee_id, first_name, last_name, salary, user_id) VALUES (15, 'Michael', 'Clark', 2700.00, 5);
+INSERT INTO public.employee (employee_id, first_name, last_name, salary, users_id) VALUES (16, 'Никита', 'Иванов', 20000.00, 13);
+
+
+--
+-- Data for Name: mail; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.mail (mail_id, text, receiver, date, seen) VALUES (15, 'Ваша заявка №29 была принята.
+Сотрудник - Никита Иванов', 13, '2024-05-18 11:49:34.938841', true);
+INSERT INTO public.mail (mail_id, text, receiver, date, seen) VALUES (16, 'Ваша заявка №26 была выполнена.
+Сотрудник - Никита Иванов', 13, '2024-05-18 12:08:09.062183', true);
+INSERT INTO public.mail (mail_id, text, receiver, date, seen) VALUES (17, 'Ваша заявка №32 была принята.
+Сотрудник - Никита Иванов', 13, '2024-05-18 13:15:14.924873', true);
+INSERT INTO public.mail (mail_id, text, receiver, date, seen) VALUES (18, 'Ваша заявка №33 была выполнена.
+Сотрудник - Никита Иванов', 13, '2024-05-18 13:15:19.605507', true);
 
 
 --
 -- Data for Name: promotion; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (1, 1, 10.00, '2024-05-01', '2024-06-01');
-INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (2, 2, 5.00, '2024-05-10', '2024-06-10');
-INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (3, 3, 15.00, '2024-05-05', '2024-06-05');
-INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (4, 4, 20.00, '2024-05-15', '2024-06-15');
-INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (5, 5, 10.00, '2024-05-20', '2024-06-20');
+INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (6, 19, 10.00, '2024-05-04', '2024-06-03');
+INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (10, 17, 10.00, '2024-05-04', '2024-06-03');
+INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (7, 11, 15.00, '2024-05-04', '2024-06-23');
+INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (8, 18, 10.00, '2024-05-04', '2024-07-03');
+INSERT INTO public.promotion (promotion_id, service_id, discount, start_date, end_date) VALUES (9, 10, 20.00, '2024-05-04', '2024-07-03');
 
 
 --
 -- Data for Name: record; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (11, 1, 11, 1, '2024-05-02', 'Great service!', 'completed');
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (12, 2, 12, 2, '2024-05-05', 'Nice job!', 'completed');
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (13, 3, 13, 3, '2024-05-08', 'Amazing massage!', 'completed');
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (14, 4, 14, 4, '2024-05-10', 'Excellent facial!', 'completed');
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (15, 5, 15, 5, '2024-05-15', 'Wonderful pedicure!', 'completed');
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (16, 7, NULL, 1, '2000-01-01', NULL, NULL);
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (17, 7, NULL, 1, '2000-01-01', NULL, NULL);
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (18, 7, NULL, 2, '2000-01-01', NULL, NULL);
-INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (19, 7, NULL, 3, '2024-01-02', NULL, NULL);
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (28, 14, NULL, 18, '2024-06-02', NULL, 'pending');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (31, 13, NULL, 16, '2024-05-23', NULL, 'pending');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (30, 13, 16, 10, '2025-05-04', NULL, 'completed');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (26, 13, NULL, 10, '2025-05-04', 'None', 'pending');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (27, 13, 16, 13, '2024-05-04', NULL, 'completed');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (33, 13, NULL, 10, '2024-05-18', NULL, 'pending');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (32, 13, 16, 14, '2024-05-08', 'None', 'accepted');
+INSERT INTO public.record (record_id, client_id, employee_id, service_id, date, review, status) VALUES (29, 13, 16, 11, '2024-05-04', NULL, 'completed');
 
 
 --
 -- Data for Name: service; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.service (service_id, name, cost, description) VALUES (1, 'Pedicure1', 25.00, 'Foot treatment');
-INSERT INTO public.service (service_id, name, cost, description) VALUES (4, 'Pedicure1', 25.00, 'Foot treatment');
-INSERT INTO public.service (service_id, name, cost, description) VALUES (5, 'Pedicure1', 25.00, 'Foot treatment');
-INSERT INTO public.service (service_id, name, cost, description) VALUES (2, 'Pedicure2', 25.00, 'Foot treatment');
-INSERT INTO public.service (service_id, name, cost, description) VALUES (3, 'Pedicure3', 25.00, 'Foot treatment');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (10, 'Установка ОС', 50.00, 'Установка и настройка операционной системы');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (11, 'Антивирусная проверка', 30.00, 'Проверка на вирусы и удаление вредоносных программ');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (14, 'Настройка сети', 40.00, 'Настройка локальной сети и интернета');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (15, 'Восстановление данных', 60.00, 'Восстановление удаленных или поврежденных данных');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (16, 'Обслуживание ПК', 25.00, 'Техническое обслуживание и чистка компьютера');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (17, 'Установка антивируса', 15.00, 'Установка и настройка антивирусной программы');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (18, 'Обучение', 35.00, 'Обучение основам работы с компьютером');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (19, 'Консультация', 20.00, 'Консультация по вопросам компьютерной безопасности');
+INSERT INTO public.service (service_id, name, cost, description) VALUES (13, 'Обновление ПО', 20.00, 'Обновление операционной системы и программного обеспечения');
 
 
 --
 -- Data for Name: service_employee; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.service_employee (service_id, employee_id) VALUES (1, 11);
-INSERT INTO public.service_employee (service_id, employee_id) VALUES (2, 12);
-INSERT INTO public.service_employee (service_id, employee_id) VALUES (3, 13);
-INSERT INTO public.service_employee (service_id, employee_id) VALUES (4, 14);
-INSERT INTO public.service_employee (service_id, employee_id) VALUES (5, 15);
-INSERT INTO public.service_employee (service_id, employee_id) VALUES (1, 13);
+INSERT INTO public.service_employee (service_id, employee_id) VALUES (10, 16);
+INSERT INTO public.service_employee (service_id, employee_id) VALUES (11, 16);
+INSERT INTO public.service_employee (service_id, employee_id) VALUES (14, 16);
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.users (users_id, username, password, role) VALUES (2, 'bob', 'securepass', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (3, 'charlie', '123456', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (4, 'david', 'pass123', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (5, 'eve', 'password', 'user');
 INSERT INTO public.users (users_id, username, password, role) VALUES (1, 'admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'admin');
 INSERT INTO public.users (users_id, username, password, role) VALUES (6, 'vadim', '90e61fd0c8a40f52cba6a0a010314537c8b59f25d9356ebd838cf49be5f3168f', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (8, 'vadim1', '90e61fd0c8a40f52cba6a0a010314537c8b59f25d9356ebd838cf49be5f3168f', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (9, 'vadim2', '90e61fd0c8a40f52cba6a0a010314537c8b59f25d9356ebd838cf49be5f3168f', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (10, 'qwe', '489cd5dbc708c7e541de4d7cd91ce6d0f1613573b7fc5b40d3942ccb9555cf35', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (11, 'qweqwe', '1b6606fde7e896803a9fb49351a6a5cde853aa042e7c8d2ee71b62b95901fff0', 'user');
-INSERT INTO public.users (users_id, username, password, role) VALUES (12, 'ewqeqwe', '20fca05fb9197294b38d4bbe476e9dac53a2dab304da654e4baddd4fbe52658c', 'user');
+INSERT INTO public.users (users_id, username, password, role) VALUES (14, 'kolya', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', 'user');
+INSERT INTO public.users (users_id, username, password, role) VALUES (13, 'nikita', '8458b1d651d9faf2691730497b34526730947b758078610ec3a56ebe844fd1a3', 'employee');
 
 
 --
 -- Name: client_client_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.client_client_id_seq', 11, true);
+SELECT pg_catalog.setval('public.client_client_id_seq', 14, true);
 
 
 --
 -- Name: employee_employee_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.employee_employee_id_seq', 15, true);
+SELECT pg_catalog.setval('public.employee_employee_id_seq', 16, true);
+
+
+--
+-- Name: mail_mail_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.mail_mail_id_seq', 18, true);
 
 
 --
 -- Name: promotion_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.promotion_id_seq', 5, true);
+SELECT pg_catalog.setval('public.promotion_id_seq', 10, true);
 
 
 --
 -- Name: record_record_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.record_record_id_seq', 19, true);
+SELECT pg_catalog.setval('public.record_record_id_seq', 33, true);
 
 
 --
 -- Name: service_service_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.service_service_id_seq', 8, true);
+SELECT pg_catalog.setval('public.service_service_id_seq', 19, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 12, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 14, true);
 
 
 --
@@ -494,6 +630,14 @@ ALTER TABLE ONLY public.client
 
 ALTER TABLE ONLY public.employee
     ADD CONSTRAINT employee_pkey PRIMARY KEY (employee_id);
+
+
+--
+-- Name: mail mail_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.mail
+    ADD CONSTRAINT mail_pkey PRIMARY KEY (mail_id);
 
 
 --
@@ -548,9 +692,36 @@ ALTER TABLE ONLY public.users
 -- Name: client client_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
+CREATE TRIGGER client_trigger AFTER INSERT OR DELETE OR UPDATE ON public.client FOR EACH STATEMENT EXECUTE FUNCTION public.update_client_view();
+
+
+--
+-- Name: employee employee_trigger; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER employee_trigger AFTER INSERT OR DELETE OR UPDATE ON public.employee FOR EACH STATEMENT EXECUTE FUNCTION public.update_employee_view();
+
+
+--
+-- Name: promotion promotion_trigger; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER promotion_trigger AFTER INSERT OR DELETE OR UPDATE ON public.promotion FOR EACH STATEMENT EXECUTE FUNCTION public.update_promotion_view();
+
+
+--
+-- Name: record record_trigger; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER record_trigger AFTER INSERT OR DELETE OR UPDATE ON public.record FOR EACH STATEMENT EXECUTE FUNCTION public.update_record_view();
+
+
+--
+-- Name: client client_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
 
 ALTER TABLE ONLY public.client
-    ADD CONSTRAINT client_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(users_id);
+    ADD CONSTRAINT client_user_id_fkey FOREIGN KEY (users_id) REFERENCES public.users(users_id);
 
 
 --
@@ -558,7 +729,15 @@ ALTER TABLE ONLY public.client
 --
 
 ALTER TABLE ONLY public.employee
-    ADD CONSTRAINT employee_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(users_id);
+    ADD CONSTRAINT employee_user_id_fkey FOREIGN KEY (users_id) REFERENCES public.users(users_id);
+
+
+--
+-- Name: mail mail_receiver_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.mail
+    ADD CONSTRAINT mail_receiver_fkey FOREIGN KEY (receiver) REFERENCES public.client(client_id);
 
 
 --
@@ -607,6 +786,34 @@ ALTER TABLE ONLY public.service_employee
 
 ALTER TABLE ONLY public.service_employee
     ADD CONSTRAINT service_employee_service_id_fkey FOREIGN KEY (service_id) REFERENCES public.service(service_id);
+
+
+--
+-- Name: client_view; Type: MATERIALIZED VIEW DATA; Schema: public; Owner: postgres
+--
+
+REFRESH MATERIALIZED VIEW public.client_view;
+
+
+--
+-- Name: employee_view; Type: MATERIALIZED VIEW DATA; Schema: public; Owner: postgres
+--
+
+REFRESH MATERIALIZED VIEW public.employee_view;
+
+
+--
+-- Name: promotion_view; Type: MATERIALIZED VIEW DATA; Schema: public; Owner: postgres
+--
+
+REFRESH MATERIALIZED VIEW public.promotion_view;
+
+
+--
+-- Name: record_view; Type: MATERIALIZED VIEW DATA; Schema: public; Owner: postgres
+--
+
+REFRESH MATERIALIZED VIEW public.record_view;
 
 
 --
