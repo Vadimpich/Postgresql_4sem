@@ -1,8 +1,8 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from ui.wigdet_welcome import Ui_welcomeWidget
+from ui.widget_welcome import Ui_welcomeWidget
 from dialogs import authdialog, registerdialog
-from widgets import adminwidget, userwidget
+from widgets import adminwidget, userwidget, employeewidget
 from modules import db
 
 
@@ -32,6 +32,11 @@ class WelcomeWidget(QtWidgets.QWidget):
                 user = dialog.user
                 self.parent().addWidget(
                     userwidget.UserWidget(user, None)
+                )
+            elif dialog.next_tab == 'employee':
+                user = dialog.user
+                self.parent().addWidget(
+                    employeewidget.EmployeeWidget(user, None)
                 )
             else:
                 self.parent().addWidget(adminwidget.AdminWidget())

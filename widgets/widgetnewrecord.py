@@ -26,7 +26,7 @@ class NewRecordWidget(QtWidgets.QWidget):
 
     def save_record(self):
         try:
-            self.db.insert(
+            self.db.execute(
                 f"insert into record (client_id, service_id, date) "
                 f"values ("
                 f"{self.client[0]}, "

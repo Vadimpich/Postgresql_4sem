@@ -19,14 +19,14 @@ class UserManager:
 
     def register(self, username, password, role):
         password = hashlib.sha256(password.encode()).hexdigest()
-        return self.db.insert(
+        return self.db.execute(
             f'insert into users (username, password, role) '
             f"values ('{username}', '{password}', '{role}');",
         )
 
     def change_password(self, username, new_password):
         password = hashlib.sha256(new_password.encode()).hexdigest()
-        return self.db.insert(
+        return self.db.execute(
             f"update users set password = '{password}' "
             f"where username = '{username}';"
         )

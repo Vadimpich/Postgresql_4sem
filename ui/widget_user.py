@@ -10,7 +10,7 @@
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+    QSize, QTime, QUrl, Qt, Property)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
@@ -18,6 +18,28 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel,
     QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout,
     QWidget)
+
+class Button(QPushButton):
+    def __init__(self, parent):
+        super(Button, self).__init__(parent)
+        self._color = QColor()
+
+    @Property(QColor)
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, color):
+        self._color = color
+        self.setStyleSheet(
+            'background-color: rgb({}, {}, {})'.format(
+                color.red(), color.green(), color.blue()
+            )
+        )
+        print(color.red(), color.green(), color.blue())
+        self.update()
+
+
 
 class Ui_clientWidget(object):
     def setupUi(self, clientWidget):
@@ -45,11 +67,19 @@ class Ui_clientWidget(object):
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer_3)
 
+        self.buttonMail = Button(clientWidget)
+        self.buttonMail.setObjectName(u"buttonMail")
+        self.buttonMail.setMinimumSize(QSize(40, 40))
+        icon = QIcon(QIcon.fromTheme(u"emblem-mail"))
+        self.buttonMail.setIcon(icon)
+
+        self.horizontalLayout_2.addWidget(self.buttonMail)
+
         self.buttonPassword = QPushButton(clientWidget)
         self.buttonPassword.setObjectName(u"buttonPassword")
         self.buttonPassword.setMinimumSize(QSize(40, 40))
-        icon = QIcon(QIcon.fromTheme(u"mail-message-new"))
-        self.buttonPassword.setIcon(icon)
+        icon1 = QIcon(QIcon.fromTheme(u"mail-message-new"))
+        self.buttonPassword.setIcon(icon1)
 
         self.horizontalLayout_2.addWidget(self.buttonPassword)
 
@@ -80,18 +110,20 @@ class Ui_clientWidget(object):
         self.buttonNew = QPushButton(self.frame)
         self.buttonNew.setObjectName(u"buttonNew")
         self.buttonNew.setEnabled(False)
-        self.buttonNew.setMinimumSize(QSize(300, 0))
+        self.buttonNew.setMinimumSize(QSize(400, 70))
 
         self.verticalLayout_5.addWidget(self.buttonNew)
 
         self.buttonRecords = QPushButton(self.frame)
         self.buttonRecords.setObjectName(u"buttonRecords")
         self.buttonRecords.setEnabled(False)
+        self.buttonRecords.setMinimumSize(QSize(400, 70))
 
         self.verticalLayout_5.addWidget(self.buttonRecords)
 
         self.buttonInfo = QPushButton(self.frame)
         self.buttonInfo.setObjectName(u"buttonInfo")
+        self.buttonInfo.setMinimumSize(QSize(400, 70))
 
         self.verticalLayout_5.addWidget(self.buttonInfo)
 
@@ -121,6 +153,7 @@ class Ui_clientWidget(object):
     def retranslateUi(self, clientWidget):
         clientWidget.setWindowTitle(QCoreApplication.translate("clientWidget", u"Form", None))
         self.label.setText(QCoreApplication.translate("clientWidget", u"\u0417\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u0441\u0432\u043e\u0438 \u0434\u0430\u043d\u043d\u044b\u0435 \u0434\u043b\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438", None))
+        self.buttonMail.setText("")
         self.buttonPassword.setText("")
         self.buttonNew.setText(QCoreApplication.translate("clientWidget", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c", None))
         self.buttonRecords.setText(QCoreApplication.translate("clientWidget", u"\u041c\u043e\u0438 \u0437\u0430\u043f\u0438\u0441\u0438", None))

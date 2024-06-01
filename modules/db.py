@@ -18,7 +18,7 @@ class Database:
     def close(self):
         self.__conn.close()
 
-    def insert(self, sql, params=None):
+    def execute(self, sql, params=None):
         self.__cur.execute(sql, params)
         self.__conn.commit()
         return self.__cur.rowcount

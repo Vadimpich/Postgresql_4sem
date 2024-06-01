@@ -24,7 +24,7 @@ class UserInfoWidget(QtWidgets.QWidget):
     def save_user(self):
         try:
             if self.client is not None:
-                self.db.insert(
+                self.db.execute(
                     f"update client set "
                     f"first_name = '{self.ui.nameField.text()}', "
                     f"last_name = '{self.ui.surnameField.text()}', "
@@ -33,7 +33,7 @@ class UserInfoWidget(QtWidgets.QWidget):
                     f"where client_id = {self.client[0]};"
                 )
             else:
-                self.db.insert(
+                self.db.execute(
                     f"insert into client "
                     f"(first_name, last_name, phone_number, address, user_id)"
                     f"values ('{self.ui.nameField.text()}', "

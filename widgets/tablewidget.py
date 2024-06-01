@@ -16,7 +16,9 @@ class TableWidget(QtWidgets.QWidget):
         self.ui = Ui_tableWidget()
         self.ui.setupUi(self)
         self.fields = []
+        self.buttons = []
         self.model = model
+        self.current_model = None
         self.db = Database()
         self.ui.tableName.setText(self.model.name)
         self.prev_index = prev_index
@@ -40,8 +42,24 @@ class TableWidget(QtWidgets.QWidget):
                     line.addItem(f'{item[0]} | {item[1]}')
             else:
                 line = QtWidgets.QLineEdit()
+            line.setEnabled(self.model.fields[i].editable)
             self.fields.append(line)
             self.ui.formLayout.addRow(label, line)
+        for i in range(len(self.model.buttons)):
+            button = QtWidgets.QPushButton(self.model.buttons[i].verbose)
+            button.clicked.connect(
+                lambda x: self.exec_dialog(self.model.buttons[i].reference)
+            )
+            self.buttons.append(button)
+            self.buttons[i].setDisabled(True)
+            self.ui.formLayout.addRow(button)
+
+    def exec_dialog(self, dialog_class):
+        if self.current_model:
+            dialog = dialog_class(self.current_model)
+            res = dialog.exec()
+            if res == QtWidgets.QDialog.DialogCode.Accepted:
+                self.update_table()
 
     def setup_table(self):
         self.ui.dataTable.setColumnCount((len(self.model.fields) + 1))
@@ -113,14 +131,14 @@ class TableWidget(QtWidgets.QWidget):
         fields = [field.name for field in self.model.fields]
         values = [
             f"'{
-            field.text()
-            if isinstance(field, QtWidgets.QLineEdit)
-            else field.currentText().split(' |')[0]
+                field.text()
+                if isinstance(field, QtWidgets.QLineEdit)
+                else field.currentText().split(' |')[0]
             }'"
             for field in self.fields
         ]
         try:
-            self.db.insert(
+            self.db.execute(
                 f'insert into {self.model.table_name}'
                 f'({", ".join(fields)}) values ({", ".join(values)});'
             )
@@ -141,7 +159,7 @@ class TableWidget(QtWidgets.QWidget):
                     | QtWidgets.QMessageBox.StandardButton.No
             ):
                 try:
-                    self.db.insert(
+                    self.db.execute(
                         f'update {self.model.table_name} set '
                         f'{', '.join(
                             [f"{self.model.fields[i].name} = "
@@ -172,7 +190,7 @@ class TableWidget(QtWidgets.QWidget):
                     | QtWidgets.QMessageBox.StandardButton.No
             ):
                 try:
-                    self.db.insert(
+                    self.db.execute(
                         f'delete from {self.model.table_name} '
                         f'where {self.model.table_name}_id = '
                         f'{self.ui.dataTable.item(row, 0).text()};'
@@ -188,6 +206,10 @@ class TableWidget(QtWidgets.QWidget):
     def select_row(self):
         row = self.ui.dataTable.currentRow()
         if row >= 0:
+            self.current_model = [
+                self.ui.dataTable.item(row, x).text()
+                for x in range(self.ui.dataTable.columnCount())
+            ]
             for i in range(len(self.fields)):
                 if isinstance(self.fields[i], QtWidgets.QLineEdit):
                     self.fields[i].setText(
@@ -200,9 +222,14 @@ class TableWidget(QtWidgets.QWidget):
                             self.model.fields[i].reference,
                         )
                     )
+            for button in self.buttons:
+                button.setEnabled(True)
             self.ui.buttonEdit.setEnabled(True)
             self.ui.buttonDelete.setEnabled(True)
         else:
+            self.current_model = None
+            for button in self.buttons:
+                button.setEnabled(False)
             self.ui.buttonEdit.setEnabled(False)
             self.ui.buttonDelete.setEnabled(False)
 

@@ -33,3 +33,4 @@ if __name__ == '__main__':
     window.setWindowIcon(QtGui.QIcon('icon.ico'))
     window.show()
     sys.exit(app.exec())
+

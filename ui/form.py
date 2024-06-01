@@ -30,7 +30,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         MainWindow.setMinimumSize(QSize(1000, 650))
-        MainWindow.setMaximumSize(QSize(1000, 650))
+        MainWindow.setMaximumSize(QSize(1111111, 111111))
         font = QFont()
         font.setFamilies([u"Microsoft YaHei UI Light"])
         font.setPointSize(16)

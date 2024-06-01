@@ -1,6 +1,16 @@
+from dialogs import passworddialog, servicesdialog
+
+
 class Field:
-    def __init__(self, name, reference=None, verbose=''):
+    def __init__(self, name, reference=None, verbose='', editable=True):
         self.name = name
+        self.reference = reference
+        self.verbose = verbose
+        self.editable = editable
+
+
+class Button:
+    def __init__(self, reference=None, verbose=''):
         self.reference = reference
         self.verbose = verbose
 
@@ -10,6 +20,7 @@ class Model:
     view_name = ''
     name = ''
     fields = []
+    buttons = []
     foreign_field = ''
     view_fields = []
 
@@ -20,9 +31,10 @@ class Users(Model):
     name = 'Уч. записи'
     fields = [
         Field('username', verbose='Логин'),
-        Field('password', verbose='Пароль'),
+        Field('password', verbose='Пароль', editable=False),
         Field('role', verbose='Роль')
     ]
+    buttons = [Button(passworddialog.PasswordDialog, 'Сменить пароль')]
     foreign_field = 'username'
 
 
@@ -49,7 +61,10 @@ class Promotion(Model):
         Field('start_date', verbose='Начало'),
         Field('end_date', verbose='Окончание')
     ]
-    view_fields = ['promotion_id', 'service_name', 'discount', 'start_date', 'end_date']
+    view_fields = [
+        'promotion_id', 'service_name',
+        'discount', 'start_date', 'end_date'
+    ]
 
 
 class Client(Model):
@@ -61,10 +76,13 @@ class Client(Model):
         Field('last_name', verbose='Фамилия'),
         Field('phone_number', verbose='Телефон'),
         Field('address', verbose='Адрес'),
-        Field('user_id', reference=Users, verbose='Уч. запись')
+        Field('users_id', reference=Users, verbose='Уч. запись')
     ]
     foreign_field = "concat(first_name, ' ', last_name)"
-    view_fields = ['client_id', 'first_name', 'last_name', 'phone_number', 'address', 'user_username']
+    view_fields = [
+        'client_id', 'first_name', 'last_name',
+        'phone_number', 'address', 'user_username'
+    ]
 
 
 class Employee(Model):
@@ -75,10 +93,14 @@ class Employee(Model):
         Field('first_name', verbose='Имя'),
         Field('last_name', verbose='Фамилия'),
         Field('salary', verbose='Зарплата'),
-        Field('user_id', reference=Users, verbose='Уч. запись')
+        Field('users_id', reference=Users, verbose='Уч. запись'),
     ]
+    buttons = [Button(servicesdialog.ServicesDialog, 'Изменить услуги')]
     foreign_field = "concat(first_name, ' ', last_name)"
-    view_fields = ['employee_id', 'first_name', 'last_name', 'salary', 'user_username']
+    view_fields = [
+        'employee_id', 'first_name', 'last_name',
+        'salary', 'user_username'
+    ]
 
 
 class Record(Model):
@@ -95,7 +117,10 @@ class Record(Model):
         Field('review', verbose='Отзыв'),
         Field('status', verbose='Статус')
     ]
-    view_fields = ['record_id', 'client_full_name', 'employee_full_name', 'service_name', 'date', 'review', 'status']
+    view_fields = [
+        'record_id', 'client_full_name', 'employee_full_name',
+        'service_name', 'date', 'review', 'status'
+    ]
 
 
 class ServiceEmployee(Model):

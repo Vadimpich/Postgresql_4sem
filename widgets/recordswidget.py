@@ -92,7 +92,7 @@ class RecordsWidget(QtWidgets.QWidget):
         for row in range(len(data)):
             for col in range(len(data[row])):
                 text = (
-                    '-' if data[row][col] is None
+                    '-' if data[row][col] in [None, 'None']
                     else STATUSES.get(data[row][col])
                     if data[row][col] in STATUSES
                     else data[row][col]
